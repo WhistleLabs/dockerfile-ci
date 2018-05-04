@@ -24,7 +24,9 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --no-cache curl
+            apk add --no-cache \
+              curl \
+              docker
       - save_cache:
           key: dependency-cache
           paths:
