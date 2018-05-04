@@ -1,4 +1,4 @@
-FROM alpine:3.6 as provider
+FROM alpine:3.7 as provider
 MAINTAINER "WhistleLabs, Inc. <devops@whistle.com>"
 
 # Loop through the list of providers that we want to include
