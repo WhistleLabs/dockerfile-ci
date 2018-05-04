@@ -27,7 +27,8 @@ jobs:
             apk add --no-cache \
               bash \
               curl \
-              docker
+              docker \
+              jq
       - save_cache:
           key: dependency-cache
           paths:
