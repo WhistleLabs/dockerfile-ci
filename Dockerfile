@@ -55,8 +55,7 @@ RUN mkdir -p /aws/.terraform.d/plugins && \
         rm -rf /tmp/build \
     ; done
 
-ARG  COVALENCE_VERSION=0.7.6
-FROM unifio/covalence:${COVALENCE_VERSION} as release
+FROM unifio/covalence:0.7.6
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
 LABEL packer_version="1.0.0"
