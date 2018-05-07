@@ -1,5 +1,5 @@
 FROM alpine:3.7 as provider
-MAINTAINER "WhistleLabs, Inc. <devops@whistle.com>"
+LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
 # Loop through the list of providers that we want to include
 RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget unzip && \
@@ -55,8 +55,9 @@ RUN mkdir -p /aws/.terraform.d/plugins && \
         rm -rf /tmp/build \
     ; done
 
-FROM unifio/covalence:latest
-MAINTAINER "WhistleLabs, Inc. <devops@whistle.com>"
+ARG  COVALENCE_VERSION=0.7.6
+FROM unifio/covalence:${COVALENCE_VERSION} as release
+LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
 LABEL packer_version="1.0.0"
 LABEL terraform_version="0.10.7"

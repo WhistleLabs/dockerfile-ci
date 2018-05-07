@@ -8,15 +8,10 @@ jobs:
       MAJOR_VERSION_TAG: 2
       PACKER_VERSION_TAG: 1.0.0
       TERRAFORM_VERSION_TAG: 0.10.7
-      TERRAFORM_PROVIDER_VERSION_TAG: 0.0.1
-      NODE_VERSION_TAG: 7.5.0
-      DOCKER_BIN_TAG: 'node-7.5.0'
       CI_CONTAINER_NAME: 'whistle-ci'
       TF_IMAGE: 'unifio/terraform'
-      TF_PROVIDER_IMAGE: 'whistle/terraform-providers'
       PKR_IMAGE: 'unifio/packer'
       CI_IMAGE_NAME: 'whistle/ci'
-      CI_NODE_IMAGE_NAME: 'whistle/ci:node-7.5.0'
     steps:
       - checkout
       - setup_remote_docker:
