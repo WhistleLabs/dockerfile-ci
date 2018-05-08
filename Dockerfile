@@ -4,7 +4,7 @@ LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 # Loop through the list of providers that we want to include
 # TODO - do we need mercurial??
 RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget unzip && \
-    gpg --keyserver keys.gnupg.net --recv-keys 91A6E7F85D05C65630BEF18951852D87348FFC4C && \
+    gpg --keyserver pgp.mit.edu --recv-keys 91A6E7F85D05C65630BEF18951852D87348FFC4C && \
     mkdir -p /usr/local/bin/terraform-providers && \
     for provider in \
     aws:0.1.4 \
