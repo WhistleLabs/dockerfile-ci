@@ -3,8 +3,12 @@ LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
 # Loop through the list of providers that we want to include
 # TODO - do we need mercurial??
-RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget unzip && \
-    gpg --keyserver pgp.mit.edu --recv-keys 91A6E7F85D05C65630BEF18951852D87348FFC4C && \
+# TODO - keys are not reliable in CircleCI build  gpg --keyserver pgp.mit.edu --recv-keys 91A6E7F85D05C65630BEF18951852D87348FFC4C && \
+RUN apk add --no-cache --update ca-certificates gnupg openssl git wget unzip && \
+    keyserver=$(getent ahostsv4 ha.pool.sks-keyservers.net | grep STREAM | head -n 1 | cut -d ' ' -f 1); \
+    gpg --keyserver $keyserver --receive-keys $GOSU_KEY; \
+    gpg --batch --verify gosu.asc gosu; \
+    chmod +x gosu; \
     mkdir -p /usr/local/bin/terraform-providers && \
     for provider in \
     aws:0.1.4 \
