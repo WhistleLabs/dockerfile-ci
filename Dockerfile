@@ -5,7 +5,7 @@ LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 # TODO - do we need mercurial??
 # TODO   gpg --keyserver pgp.mit.edu --recv-keys 91A6E7F85D05C65630BEF18951852D87348FFC4C && \
 RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget unzip && \
-    gpg --import hashicorp.asc
+    gpg --import hashicorp.asc && \
     mkdir -p /usr/local/bin/terraform-providers && \
     for provider in \
     aws:0.1.4 \
