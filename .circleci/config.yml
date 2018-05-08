@@ -51,19 +51,12 @@ jobs:
       - run:
           name: Execute acceptance test
           command: |
-            cat ~/.allbinaries
             docker run --entrypoint /bin/sh "${CI_IMAGE_NAME}" -c "gem list | grep covalence"
             docker run --entrypoint /bin/sh "${CI_IMAGE_NAME}" -c "aws --version"
+            docker run -e CHECKPOINT_DISABLE=1 --entrypoint /bin/sh "${CI_IMAGE_NAME}" -c "packer version"
+            docker run -e CHECKPOINT_DISABLE=1 --entrypoint /bin/sh "${CI_IMAGE_NAME}" -c "terraform version"
             docker run --entrypoint /bin/sh "${CI_IMAGE_NAME}" -c "ls -l /usr/local/bin/terraform-providers/linux_amd64"
             docker run --entrypoint /bin/sh "${CI_IMAGE_NAME}" -c "ls -l /aws/.terraform.d/plugins"
-            if grep -q packer ~/.allbinaries; then
-              docker run -e CHECKPOINT_DISABLE=1 \
-                --entrypoint /bin/sh "${CI_IMAGE_NAME}" -c "packer version"
-            fi
-            if grep -q terraform ~/.allbinaries; then
-              docker run -e CHECKPOINT_DISABLE=1 \
-                --entrypoint /bin/sh "${CI_IMAGE_NAME}" -c "terraform version"
-            fi
       - deploy:
           name: Register CI image
           command: |
