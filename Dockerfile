@@ -2,6 +2,7 @@ FROM alpine:3.7 as provider
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
 # Loop through the list of providers that we want to include
+# TODO - do we need mercurial??
 RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget unzip && \
     gpg --keyserver keys.gnupg.net --recv-keys 91A6E7F85D05C65630BEF18951852D87348FFC4C && \
     mkdir -p /usr/local/bin/terraform-providers && \
@@ -61,26 +62,20 @@ LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 LABEL packer_version="1.0.0"
 LABEL terraform_version="0.10.7"
 
+# Install glibc, PIP, AWS CLI and Misc. Ruby tools
+# TODO - postgresql-client is hopefully temporary, see DEVOPS-1844
 RUN mkdir -p /tmp/build && \
     cd /tmp/build && \
-
-    # Install glibc
     wget -q -O /etc/apk/keys/sgerrand.rsa.pub "https://raw.githubusercontent.com/sgerrand/alpine-pkg-glibc/master/sgerrand.rsa.pub" && \
     wget -q "https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk" && \
+    apk update && \
     apk add glibc-2.23-r3.apk && \
-
-    # Install PIP
+    apk add postgresql-client && \
     apk add --no-cache --update curl curl-dev jq python-dev && \
     curl -O https://bootstrap.pypa.io/get-pip.py && \
     python get-pip.py && \
-
-    # Install AWS CLI
     pip install awscli && \
-
-    # Install Misc. Ruby tools
-    gem install awesome_print consul_loader thor --no-ri --no-rdoc && \
-
-    # Cleanup
+    gem install awesome_print consul_loader terraform_landscape thor --no-ri --no-rdoc && \
     cd /tmp && \
     rm -rf /tmp/build
 
