@@ -1,11 +1,38 @@
+# TODO - all security checking of downloaded binaries has been removed
+
+FROM alpine:3.5 as packer
+LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
+ENV PACKER_VERSION 1.1.0
+
+RUN apk add --no-cache --update ca-certificates gnupg openssl wget unzip && \
+    mkdir -p /tmp/build && \
+    cd /tmp/build && \
+    wget -q "https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip" && \
+    wget -q "https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_SHA256SUMS" && \
+    wget -q "https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_SHA256SUMS.sig" && \
+    unzip -d /usr/local/bin packer_${PACKER_VERSION}_linux_amd64.zip && \
+    cd /tmp && \
+    rm -rf /tmp/build
+
+FROM alpine:3.5 as terraform
+LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
+ENV TERRAFORM_VERSION 0.10.7
+
+RUN apk add --no-cache --update ca-certificates gnupg openssl wget unzip && \
+    mkdir -p /tmp/build && \
+    cd /tmp/build && \
+    wget -q "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" && \
+    wget -q "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" && \
+    wget -q "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.sig" && \
+    unzip -d /usr/local/bin terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
+    cd /tmp && \
+    rm -rf /tmp/build
+
 FROM alpine:3.7 as provider
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
 # Loop through the list of providers that we want to include
-# TODO - do we need mercurial??
-# TODO   gpg --keyserver pgp.mit.edu --recv-keys 91A6E7F85D05C65630BEF18951852D87348FFC4C && \
 RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget unzip && \
-    gpg --import hashicorp.asc && \
     mkdir -p /usr/local/bin/terraform-providers && \
     for provider in \
     aws:0.1.4 \
@@ -28,15 +55,11 @@ RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget
         wget -q "https://releases.hashicorp.com/terraform-provider-${prov_name}/${prov_ver}/terraform-provider-${prov_name}_${prov_ver}_linux_amd64.zip" && \
         wget -q "https://releases.hashicorp.com/terraform-provider-${prov_name}/${prov_ver}/terraform-provider-${prov_name}_${prov_ver}_SHA256SUMS" && \
         wget -q "https://releases.hashicorp.com/terraform-provider-${prov_name}/${prov_ver}/terraform-provider-${prov_name}_${prov_ver}_SHA256SUMS.sig" && \
-        gpg --batch --verify terraform-provider-${prov_name}_${prov_ver}_SHA256SUMS.sig terraform-provider-${prov_name}_${prov_ver}_SHA256SUMS && \
-        grep terraform-provider-${prov_name}_${prov_ver}_linux_amd64.zip terraform-provider-${prov_name}_${prov_ver}_SHA256SUMS && \
-        grep terraform-provider-${prov_name}_${prov_ver}_linux_amd64.zip terraform-provider-${prov_name}_${prov_ver}_SHA256SUMS | sha256sum -c && \
         unzip -d /usr/local/bin/terraform-providers terraform-provider-${prov_name}_${prov_ver}_linux_amd64.zip && \
         ls -l /usr/local/bin/terraform-providers && \
         cd /tmp && \
         rm -rf /tmp/build \
-    ; done && \
-    rm -rf /root/.gnupg
+    ; done
 
 # Install 3rd party providers - eventually these should come from https://registry.terraform.io/
 # See https://github.com/hashicorp/terraform/issues/17154
@@ -80,10 +103,9 @@ RUN mkdir -p /tmp/build && \
     cd /tmp && \
     rm -rf /tmp/build
 
-COPY pkr_files/packer* /usr/local/bin/
-COPY tf_files/terraform* /usr/local/bin/
-
-# Copy plugins from provider stage
+# Copy required binaries from previous build stages
+COPY --from=packer /usr/local/bin/packer* /usr/local/bin
+COPY --from=terraform /usr/local/bin/terraform* /usr/local/bin
 COPY --from=provider /usr/local/bin/terraform-providers/ /usr/local/bin/terraform-providers/linux_amd64
 # This assumes that /aws will be the HOME directory
 COPY --from=provider /aws/.terraform.d/plugins/ /aws/.terraform.d/plugins

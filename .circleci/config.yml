@@ -35,20 +35,6 @@ jobs:
           name: docker login
           command: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run:
-          name: Copy Terraform
-          command: |
-            if [[ $(DOCKER_BIN_TAG="${TERRAFORM_VERSION_TAG}" ./tagexists.sh ${TF_IMAGE}) == "1" ]];then
-              ./copybins.sh terraform && \
-              echo terraform >> ~/.allbinaries
-            fi
-      - run:
-          name: Copy Packer
-          command: |
-            if [[ $(DOCKER_BIN_TAG="${PACKER_VERSION_TAG}" ./tagexists.sh ${PKR_IMAGE}) == "1" ]];then
-              ./copybins.sh packer && \
-              echo packer >> ~/.allbinaries
-            fi
-      - run:
           name: Load docker image
           command: |
             if [[ -e ~/docker/image.tar ]]; then
