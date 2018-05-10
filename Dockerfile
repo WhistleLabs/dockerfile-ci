@@ -48,6 +48,7 @@ RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget
     heroku:0.1.0 \
     logentries:0.1.0 \
     newrelic:0.1.1 \
+    null:1.0.0 \
     pagerduty:0.1.2 \
     rabbitmq:0.2.0 \
     template:0.1.0; do \
@@ -87,8 +88,8 @@ RUN mkdir -p /aws/.terraform.d/plugins && \
 FROM unifio/covalence:0.7.8
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
-LABEL packer_version="1.0.0"
-LABEL terraform_version="0.10.8"
+LABEL packer_version="${PACKER_VERSION}"
+LABEL terraform_version="${TERRAFORM_VERSION}"
 
 # Install glibc, PIP, AWS CLI and Misc. Ruby tools
 # TODO - postgresql-client is hopefully temporary, see DEVOPS-1844
