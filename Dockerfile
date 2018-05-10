@@ -20,7 +20,7 @@ RUN apk add --no-cache --update ca-certificates gnupg openssl wget unzip && \
 
 FROM alpine:3.7 as terraform
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
-ENV TERRAFORM_VERSION 0.10.7
+ENV TERRAFORM_VERSION 0.10.8
 
 RUN apk add --no-cache --update ca-certificates gnupg openssl wget unzip && \
     mkdir -p /tmp/build && \
@@ -50,7 +50,7 @@ RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget
     newrelic:0.1.1 \
     pagerduty:0.1.2 \
     rabbitmq:0.2.0 \
-    template:1.0.0; do \
+    template:0.1.0; do \
         prov_name=`echo $provider | cut -d: -f1` && \
         prov_ver=`echo $provider | cut -d: -f2` && \
         echo "Installing provider ${prov_name} version ${prov_ver}" && \
@@ -84,11 +84,11 @@ RUN mkdir -p /aws/.terraform.d/plugins && \
         rm -rf /tmp/build \
     ; done
 
-FROM unifio/covalence:0.7.6
+FROM unifio/covalence:0.7.8
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
 LABEL packer_version="1.0.0"
-LABEL terraform_version="0.10.7"
+LABEL terraform_version="0.10.8"
 
 # Install glibc, PIP, AWS CLI and Misc. Ruby tools
 # TODO - postgresql-client is hopefully temporary, see DEVOPS-1844
