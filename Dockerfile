@@ -74,7 +74,7 @@ RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget
 # https://github.com/WhistleLabs/terraform-provider-cloudamqp
 RUN mkdir -p /aws/.terraform.d/plugins && \
     for provider_url in \
-    https://github.com/WhistleLabs/dockerfile-terraform-providers/files/1908683/terraform-provider-cloudamqp.zip; do \
+    https://github.com/WhistleLabs/terraform-provider-cloudamqp/releases/download/v.0.0.1/terraform-provider-cloudamqp.zip; do \
         echo "Installing 3rd party provider from ${provider_url}" && \
         mkdir -p /tmp/build && \
         cd /tmp/build && \
