@@ -74,7 +74,7 @@ RUN mkdir -p /usr/local/bin/terraform-providers && \
 # https://www.terraform.io/docs/configuration/providers.html#third-party-plugins
 RUN mkdir -p /usr/local/bin/terraform-providers && \
     for provider in \
-       cloudamqp:0.1.0 \
+       cloudamqp:0.0.1 \
        nrs:0.1.0; do \
         prov_name=`echo $provider | cut -d: -f1` && \
         prov_ver=`echo $provider | cut -d: -f2` && \
