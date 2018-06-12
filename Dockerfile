@@ -35,9 +35,10 @@ RUN apk add --no-cache --update ca-certificates gnupg openssl wget unzip && \
 FROM alpine:3.7 as terraform_providers
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
+RUN apk add --no-cache --update ca-certificates gnupg openssl wget unzip
+
 # Loop through the list of providers that we want to include
-RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget unzip && \
-    mkdir -p /usr/local/bin/terraform-providers && \
+RUN mkdir -p /usr/local/bin/terraform-providers && \
     for provider in \
     aws:0.1.4 \
     aws:1.10.0 \
@@ -71,7 +72,7 @@ RUN apk add --no-cache --update ca-certificates gnupg openssl git mercurial wget
 # See https://github.com/hashicorp/terraform/issues/17154
 # and
 # https://www.terraform.io/docs/configuration/providers.html#third-party-plugins
-RUN mkdir -p /aws/.terraform.d/plugins && \
+RUN mkdir -p /usr/local/bin/terraform-providers && \
     for provider in \
        cloudamqp:0.1.0 \
        nrs:0.1.0; do \
