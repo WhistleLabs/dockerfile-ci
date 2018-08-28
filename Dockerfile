@@ -43,6 +43,7 @@ RUN mkdir -p /usr/local/bin/terraform-providers && \
     aws:0.1.4 \
     aws:1.10.0 \
     aws:1.18.0 \
+    aws:1.33.0 \
     consul:0.1.0 \
     datadog:0.1.1 \
     github:0.1.1 \
