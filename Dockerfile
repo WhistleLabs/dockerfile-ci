@@ -49,7 +49,7 @@ RUN mkdir -p /usr/local/bin/terraform-providers && \
     google:0.1.3 \
     heroku:0.1.0 \
     logentries:0.1.0 \
-    newrelic:0.1.1 \
+    newrelic:1.0.1 \
     null:1.0.0 \
     pagerduty:1.1.0 \
     rabbitmq:0.2.0 \
@@ -100,7 +100,7 @@ LABEL terraform_version="${TERRAFORM_VERSION}"
 RUN mkdir -p /usr/local/bin && \
     mkdir -p /tmp/build && \
     cd /tmp/build && \
-    wget -q -O /etc/apk/keys/sgerrand.rsa.pub "https://raw.githubusercontent.com/sgerrand/alpine-pkg-glibc/master/sgerrand.rsa.pub" && \
+    wget -q -O /etc/apk/keys/sgerrand.rsa.pub "https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub" && \
     wget -q "https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk" && \
     apk update && \
     apk add glibc-2.23-r3.apk && \
