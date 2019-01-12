@@ -110,7 +110,7 @@ RUN mkdir -p /usr/local/bin && \
     curl -O https://bootstrap.pypa.io/get-pip.py && \
     python get-pip.py && \
     pip install awscli && \
-    gem install awesome_print consul_loader terraform_landscape thor --no-ri --no-rdoc && \
+    gem install awesome_print consul_loader terraform_landscape thor --no-document && \
     cd /tmp && \
     rm -rf /tmp/build
 
