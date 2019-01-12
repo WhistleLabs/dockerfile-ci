@@ -40,6 +40,7 @@ RUN apk add --no-cache --update ca-certificates gnupg openssl wget unzip
 # Loop through the list of providers that we want to include
 RUN mkdir -p /usr/local/bin/terraform-providers && \
     for provider in \
+    archive:1.1.0 \
     aws:0.1.4 \
     aws:1.10.0 \
     aws:1.49.0 \
