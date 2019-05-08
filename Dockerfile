@@ -63,8 +63,9 @@ RUN mkdir -p /usr/local/bin/terraform-providers && \
     null:2.1.2 \
     pagerduty:1.2.1 \
     rabbitmq:1.0.0 \
-    template:0.1.0; do \
-    template:1.0.0; do \
+    template:0.1.0 \
+    template:1.0.0 \
+    ; do \
         prov_name=`echo $provider | cut -d: -f1` && \
         prov_ver=`echo $provider | cut -d: -f2` && \
         echo "Installing provider ${prov_name} version ${prov_ver}" && \
