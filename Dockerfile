@@ -151,7 +151,11 @@ RUN set -exv; \
     jq \
     python-dev \
     python3-dev \
+    git \
     postgresql-client \
+    gnupg \
+    openssl \
+    unzip \
   '; \
   apk add --no-cache --update $fetchDeps && \
   # pip
