@@ -33,6 +33,7 @@ RUN set -exv \
     terraform-provider-aws:2.44.0 \
     terraform-provider-github:2.1.0 \
     terraform-provider-google:2.7.0 \
+    terraform-provider-kubernetes:1.11.1 \
     terraform-provider-newrelic:1.5.0 \
     terraform-provider-null:2.1.2 \
     terraform-provider-template:2.1.2 \
