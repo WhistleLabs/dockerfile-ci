@@ -14,6 +14,7 @@ jobs:
       GOSU_VERSION: '1.11'
       RUBY_VERSION: '2.5.5'
       SOPS_VERSION: '3.3.1'
+      TERRAGRUNT_VERSION: '0.23.24'
       BUNDLER_VERSION: '1.17.3'
     steps:
       - restore_cache:
@@ -83,6 +84,7 @@ jobs:
                 --build-arg GOSU_VERSION
                 --build-arg RUBY_VERSION
                 --build-arg SOPS_VERSION
+                --build-arg TERRAGRUNT_VERSION
                 --build-arg BUNDLER_VERSION
               )
               "${cmd[@]}" "$@"
@@ -133,6 +135,8 @@ jobs:
 
             docker run -e CHECKPOINT_DISABLE=1 --entrypoint /bin/sh "${build_tag}" -c "packer version"
             docker run -e CHECKPOINT_DISABLE=1 --entrypoint /bin/sh "${build_tag}" -c "terraform version"
+            docker run -e CHECKPOINT_DISABLE=1 --entrypoint /bin/sh "${build_tag}" -c "terragrunt --version"
+            docker run --entrypoint /bin/sh "$build_tag" -c "lookup --version"
 
       - deploy:
           name: Register CI image
