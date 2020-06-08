@@ -2,6 +2,25 @@
 ARG ALPINE_VERSION
 ARG RUBY_VERSION
 
+# Golang Build stage for lookup hiera tool
+FROM golang:alpine AS hiera-build
+ENV HIERA_VERSION 0.4.5
+ENV HIERA_SHA 96f42ae
+
+RUN apk --no-cache add build-base git bzr mercurial gcc && \
+GO111MODULE=on && \
+mkdir -p /tmp/build && \
+  cd /tmp/build && \
+  \
+  # install hiera lookup
+  go mod init local/build && \
+  go get -d -v github.com/lyraproj/hiera@v${HIERA_VERSION} && \
+  export BuildTime="$(date "+%m-%d-%Y_%H_%M_%S_%Z")" && \
+  export BuildTag=$HIERA_VERSION && \
+  export BuildSHA=$HIERA_SHA && \
+  go build -ldflags "-X 'github.com/lyraproj/hiera/cli.BuildTag=$BuildTag' -X 'github.com/lyraproj/hiera/cli.BuildSHA=$BuildSHA' -X 'github.com/lyraproj/hiera/cli.BuildTime=$BuildTime'" -o bin/lookup github.com/lyraproj/hiera/lookup && \
+  bin/lookup --version
+
 FROM alpine:3.7 as build
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
@@ -139,6 +158,7 @@ ENV PATH /opt/bin:$PATH
 COPY --from=covbuild /tmp/build/gosu /usr/local/bin/
 COPY --from=covbuild /tmp/build/dumb-init /usr/local/bin/
 COPY --from=covbuild /tmp/build/sops /usr/local/bin/
+
 COPY --from=covbuild /tmp/build/Gemfile /opt/
 COPY --from=covbuild /tmp/build/Gemfile.lock /opt/
 COPY --from=covbuild /tmp/build/.gemrc /opt/
@@ -191,7 +211,7 @@ RUN mkdir -p /usr/local/bin && \
     rm -rf /tmp/build
 # Copy required binaries from previous build stages
 COPY --from=build /build/bin/* /usr/local/bin/
-
+COPY --from=hiera-build /tmp/build/bin/lookup /usr/local/bin/
 # Provider dir needs write permissions by everyone in case additional providers need to be installed at runtime
 # TODO Move these to ~/.teraform.d/plugins instead, avoiding all the magic required for this (and the 777)
 COPY --from=build /build/terraform-providers/* /usr/local/bin/terraform-providers/linux_amd64/
