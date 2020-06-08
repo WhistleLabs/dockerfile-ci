@@ -7,7 +7,7 @@ FROM golang:alpine AS hiera-build
 ENV HIERA_VERSION 0.4.5
 ENV HIERA_SHA 96f42ae
 
-RUN apk --no-cache add build-base git bzr mercurial gcc && \
+RUN apk --no-cache add build-base git mercurial gcc && \
 GO111MODULE=on && \
 mkdir -p /tmp/build && \
   cd /tmp/build && \
@@ -88,12 +88,14 @@ ARG DUMBINIT_VERSION
 ARG GOSU_VERSION
 ARG GOSU_KEY
 ARG SOPS_VERSION
+ARG TERRAGRUNT_VERSION
 
 ENV COVALENCE_VERSION $COVALENCE_VERSION
 ENV DUMBINIT_VERSION $DUMBINIT_VERSION
 ENV GOSU_VERSION $GOSU_VERSION
 ENV GOSU_KEY B42F6819007F00F88E364FD4036A9C25BF357DD4
 ENV SOPS_VERSION $SOPS_VERSION
+ENV TERRAGRUNT_VERSION $TERRAGRUNT_VERSION
 
 RUN set -ex; \
   \
@@ -129,7 +131,11 @@ RUN set -ex; \
   \
   # Sops
   wget -O /tmp/build/sops "https://github.com/mozilla/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux"; \
-  chmod +x sops
+  chmod +x sops; \
+  \
+  # terragrunt
+  wget -O /tmp/build/terragrunt "https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64"; \
+  chmod +x terragrunt
 
 COPY tools/covalence/Gemfile /tmp/build
 COPY tools/covalence/.gemrc /tmp/build
@@ -158,7 +164,7 @@ ENV PATH /opt/bin:$PATH
 COPY --from=covbuild /tmp/build/gosu /usr/local/bin/
 COPY --from=covbuild /tmp/build/dumb-init /usr/local/bin/
 COPY --from=covbuild /tmp/build/sops /usr/local/bin/
-
+COPY --from=covbuild /tmp/build/terragrunt /usr/local/bin/
 COPY --from=covbuild /tmp/build/Gemfile /opt/
 COPY --from=covbuild /tmp/build/Gemfile.lock /opt/
 COPY --from=covbuild /tmp/build/.gemrc /opt/
