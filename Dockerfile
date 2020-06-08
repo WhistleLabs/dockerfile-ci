@@ -51,7 +51,6 @@ RUN set -exv \
  # packer plugins
  && install-zipped-bin ./bin \
     packer-provisioner-serverspec:0.1.1-whistle0 \
-    prefixout:0.1.0 \
  # terraform providers
  && install-zipped-bin ./terraform-providers \
     terraform-provider-cloudamqp:0.0.1-whistle0-tf012 \
@@ -70,14 +69,12 @@ ARG DUMBINIT_VERSION
 ARG GOSU_VERSION
 ARG GOSU_KEY
 ARG SOPS_VERSION
-ARG PREFIXOUT_VERSION
 
 ENV COVALENCE_VERSION $COVALENCE_VERSION
 ENV DUMBINIT_VERSION $DUMBINIT_VERSION
 ENV GOSU_VERSION $GOSU_VERSION
 ENV GOSU_KEY B42F6819007F00F88E364FD4036A9C25BF357DD4
 ENV SOPS_VERSION $SOPS_VERSION
-ENV PREFIXOUT_VERSION $PREFIXOUT_VERSION
 
 RUN set -ex; \
   \
