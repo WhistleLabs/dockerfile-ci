@@ -130,7 +130,7 @@ RUN set -ex; \
   chmod +x dumb-init; \
   \
   # Sops
-  wget -O /tmp/build/sops "https://github.com/mozilla/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux"; \
+  wget -O /tmp/build/sops "https://github.com/mozilla/sops/releases/download/v${SOPS_VERSION}/sops-v${SOPS_VERSION}.linux"; \
   chmod +x sops; \
   \
   # terragrunt
@@ -227,4 +227,3 @@ COPY .build_ts .
 COPY tools/covalence/entrypoint.sh /usr/local/bin/
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-
