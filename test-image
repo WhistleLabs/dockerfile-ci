@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -eo pipefail
+# Required Variables
+CI_IMAGE_NAME=${CI_IMAGE_NAME:-whistle/ci}
+
+build_tag="${CI_IMAGE_NAME}:build"
+# DEVOPS-2520 Get latest covalence head sha to verify it matches whats installed
+COVALENCE_VERSION=$(wget -qO- https://api.github.com/repos/WhistleLabs/covalence/commits/HEAD | jq -r '.sha' |  cut -b -7)
+echo "latest covalence sha is: $COVALENCE_VERSION"
+docker run --entrypoint /bin/sh "$build_tag" -c "bundle info covalence"
+docker run --entrypoint /bin/sh "$build_tag" -c "aws --version"
+
+docker run -e CHECKPOINT_DISABLE=1 --entrypoint /bin/sh "${build_tag}" -c "packer version"
+docker run -e CHECKPOINT_DISABLE=1 --entrypoint /bin/sh "${build_tag}" -c "terraform version"
+docker run -e CHECKPOINT_DISABLE=1 --entrypoint /bin/sh "${build_tag}" -c "terragrunt --version"
+docker run --entrypoint /bin/sh "$build_tag" -c "lookup --version"
+docker run --entrypoint /bin/sh "${build_tag}" -c "sops --version"

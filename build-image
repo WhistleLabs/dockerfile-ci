@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+# Required Variables
+CI_IMAGE_NAME=${CI_IMAGE_NAME:-whistle/ci}
+PACKER_VERSION=${PACKER_VERSION:-1.4.4}
+TERRAFORM_VERSION=${TERRAFORM_VERSION:-0.12.29}
+ALPINE_VERSION=${ALPINE_VERSION:-3.10}
+DUMBINIT_VERSION=${DUMBINIT_VERSION:-1.2.2}
+GOSU_VERSION=${GOSU_VERSION:-1.12}
+RUBY_VERSION=${RUBY_VERSION:-2.5.5}
+SOPS_VERSION=${SOPS_VERSION:-3.6.0}
+TERRAGRUNT_VERSION=${TERRAGRUNT_VERSION:-0.24.4}
+BUNDLER_VERSION=${BUNDLER_VERSION:-1.17.3}
+
+build_tag="${CI_IMAGE_NAME}:build"
+# DEVOPS-2520 Grab the latest short sha for covalence
+COVALENCE_VERSION=$(wget -qO- https://api.github.com/repos/WhistleLabs/covalence/commits/HEAD | jq -r '.sha' |  cut -b -7)
+
+build() {
+  cmd=(
+    docker build
+    --rm=false
+    --build-arg CI_IMAGE_NAME
+    --build-arg PACKER_VERSION
+    --build-arg TERRAFORM_VERSION
+    --build-arg ALPINE_VERSION
+    --build-arg COVALENCE_VERSION=$COVALENCE_VERSION
+    --build-arg DUMBINIT_VERSION
+    --build-arg GOSU_VERSION
+    --build-arg RUBY_VERSION
+    --build-arg SOPS_VERSION
+    --build-arg TERRAGRUNT_VERSION
+    --build-arg BUNDLER_VERSION
+  )
+  "${cmd[@]}" "$@"
+}
+
+# This is a multi-stage build, which means we need to cache both stages.
+build -t "$build_tag-build" --target build .
+build -t "$build_tag-covbuild" --target covbuild .
+build -t "$build_tag" .
