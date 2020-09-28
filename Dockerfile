@@ -26,7 +26,7 @@ LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
 RUN set -exv \
  && apk add --no-cache --update \
-        ca-certificates curl unzip zsh \
+        ca-certificates curl unzip bash zsh \
  && :
 
 WORKDIR /build
