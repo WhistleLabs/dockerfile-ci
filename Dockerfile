@@ -49,7 +49,7 @@ RUN set -exv \
  # terraform providers
  && install-zipped-bin ./terraform-providers \
     terraform-provider-archive:1.2.2 \
-    terraform-provider-aws:2.44.0 \
+    terraform-provider-aws:2.70.0  \
     terraform-provider-github:2.3.1 \
     terraform-provider-google:2.7.0 \
     terraform-provider-kubernetes:1.11.1 \
