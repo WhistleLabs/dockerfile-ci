@@ -89,13 +89,14 @@ ARG GOSU_VERSION
 ARG GOSU_KEY
 ARG SOPS_VERSION
 ARG TERRAGRUNT_VERSION
-
+ARG YQ_VERSION
 ENV COVALENCE_VERSION $COVALENCE_VERSION
 ENV DUMBINIT_VERSION $DUMBINIT_VERSION
 ENV GOSU_VERSION $GOSU_VERSION
 ENV GOSU_KEY B42F6819007F00F88E364FD4036A9C25BF357DD4
 ENV SOPS_VERSION $SOPS_VERSION
 ENV TERRAGRUNT_VERSION $TERRAGRUNT_VERSION
+ENV YQ_VERSION $YQ_VERSION
 
 RUN set -ex; \
   \
@@ -135,8 +136,10 @@ RUN set -ex; \
   \
   # terragrunt
   wget -O /tmp/build/terragrunt "https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64"; \
-  chmod +x terragrunt
-
+  chmod +x terragrunt; \
+  # yq
+  wget -O /tmp/build/yq https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64; \
+  chmod +x yq;
 COPY tools/covalence/Gemfile /tmp/build
 COPY tools/covalence/.gemrc /tmp/build
 
@@ -165,6 +168,7 @@ COPY --from=covbuild /tmp/build/gosu /usr/local/bin/
 COPY --from=covbuild /tmp/build/dumb-init /usr/local/bin/
 COPY --from=covbuild /tmp/build/sops /usr/local/bin/
 COPY --from=covbuild /tmp/build/terragrunt /usr/local/bin/
+COPY --from=covbuild /tmp/build/yq /usr/local/bin/
 COPY --from=covbuild /tmp/build/Gemfile /opt/
 COPY --from=covbuild /tmp/build/Gemfile.lock /opt/
 COPY --from=covbuild /tmp/build/.gemrc /opt/
