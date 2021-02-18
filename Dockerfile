@@ -4,8 +4,8 @@ ARG RUBY_VERSION
 
 # Golang Build stage for lookup hiera tool
 FROM golang:alpine AS hiera-build
-ENV HIERA_VERSION 0.4.5
-ENV HIERA_SHA 96f42ae
+ENV HIERA_VERSION 0.4.6
+ENV HIERA_SHA 04c8819
 
 RUN apk --no-cache add build-base git mercurial gcc && \
 GO111MODULE=on && \
@@ -138,7 +138,7 @@ RUN set -ex; \
   wget -O /tmp/build/terragrunt "https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64"; \
   chmod +x terragrunt; \
   # yq
-  wget -O /tmp/build/yq https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64; \
+  wget -O /tmp/build/yq https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64; \
   chmod +x yq;
 COPY tools/covalence/Gemfile /tmp/build
 COPY tools/covalence/.gemrc /tmp/build
