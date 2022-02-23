@@ -15,6 +15,11 @@ mkdir -p /tmp/build && \
   # install hiera lookup
   go mod init local/build && \
   go get -d -v github.com/lyraproj/hiera@v${HIERA_VERSION} && \
+  go get -d -v github.com/lyraproj/hiera/config && \
+  go get -d -v github.com/lyraproj/hiera/api && \
+  go get -d -v github.com/lyraproj/hiera/session && \
+  go get -d -v github.com/lyraproj/hiera/hiera && \
+  go get -d -v github.com/lyraproj/hiera/cli && \
   export BuildTime="$(date "+%m-%d-%Y_%H_%M_%S_%Z")" && \
   export BuildTag=$HIERA_VERSION && \
   export BuildSHA=$HIERA_SHA && \
@@ -49,7 +54,7 @@ RUN set -exv \
  # terraform providers
  && install-zipped-bin ./terraform-providers \
     terraform-provider-archive:1.2.2 \
-    terraform-provider-aws:2.70.0  \
+    terraform-provider-aws:2.70.1  \
     terraform-provider-github:2.3.1 \
     terraform-provider-google:2.7.0 \
     terraform-provider-kubernetes:1.11.1 \
