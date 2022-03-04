@@ -81,7 +81,6 @@ RUN set -exv \
     terraform-provider-datadog:1.9.0-whistle0-tf012 \
     terraform-provider-heroku:1.9.0-whistle0-tf012 \
     terraform-provider-logentries:1.0.0-whistle0-tf012 \
-    terraform-provider-nrs:0.1.0-whistle1-tf012 \
     terraform-provider-pagerduty:1.2.1-whistle0-tf012 \
     terraform-provider-rabbitmq:1.0.0-whistle0-tf012 \
  && :
