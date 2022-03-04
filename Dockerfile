@@ -84,9 +84,14 @@ RUN set -exv \
     terraform-provider-nrs:0.1.0-whistle1-tf012 \
     terraform-provider-pagerduty:1.2.1-whistle0-tf012 \
     terraform-provider-rabbitmq:1.0.0-whistle0-tf012 \
-    terraform-provider-sentry:0.4.0-whistle1-tf012 \
  && :
-
+# @jianyuan github releases sentry
+RUN set -exv \
+ && export uri_template='https://github.com/jianyuan/${name}/releases/download/v${full_ver}/${name}_${ver}_${arch}.zip' \
+ # terraform providers
+ && install-zipped-bin ./terraform-providers \
+    terraform-provider-sentry:0.7.0 \
+ && :
 FROM ruby:${RUBY_VERSION}-alpine${ALPINE_VERSION} as covbuild
 ARG COVALENCE_VERSION
 ARG DUMBINIT_VERSION
