@@ -54,11 +54,11 @@ RUN set -exv \
  # terraform providers
  && install-zipped-bin ./terraform-providers \
     terraform-provider-archive:1.2.2 \
-    terraform-provider-aws:2.70.1  \
+    terraform-provider-aws:4.62.0  \
     terraform-provider-github:2.3.1 \
     terraform-provider-google:2.7.0 \
     terraform-provider-kubernetes:1.11.1 \
-    terraform-provider-newrelic:1.20.1 \
+    terraform-provider-newrelic:3.20.2 \
     terraform-provider-null:2.1.2 \
     terraform-provider-template:2.1.2 \
  && :
@@ -81,7 +81,6 @@ RUN set -exv \
     terraform-provider-datadog:1.9.0-whistle0-tf012 \
     terraform-provider-heroku:1.9.0-whistle0-tf012 \
     terraform-provider-logentries:1.0.0-whistle0-tf012 \
-    terraform-provider-nrs:0.1.0-whistle1-tf012 \
     terraform-provider-pagerduty:1.2.1-whistle0-tf012 \
     terraform-provider-rabbitmq:1.0.0-whistle0-tf012 \
  && :
