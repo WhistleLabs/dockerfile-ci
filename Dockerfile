@@ -47,10 +47,6 @@ ARG TERRAFORM_VERSION
 # @hashicorp releases
 RUN set -exv \
  && export uri_template='https://releases.hashicorp.com/${name}/${ver}/${name}_${ver}_${arch}.zip' \
- # packer & terraform
- && install-zipped-bin ./bin \
-    packer:$PACKER_VERSION \
-    terraform:$TERRAFORM_VERSION \
  # terraform providers
  && install-zipped-bin ./terraform-providers \
     terraform-provider-archive:1.2.2 \
@@ -97,14 +93,12 @@ ARG DUMBINIT_VERSION
 ARG GOSU_VERSION
 ARG GOSU_KEY
 ARG SOPS_VERSION
-ARG TERRAGRUNT_VERSION
 ARG YQ_VERSION
 ENV COVALENCE_VERSION $COVALENCE_VERSION
 ENV DUMBINIT_VERSION $DUMBINIT_VERSION
 ENV GOSU_VERSION $GOSU_VERSION
 ENV GOSU_KEY B42F6819007F00F88E364FD4036A9C25BF357DD4
 ENV SOPS_VERSION $SOPS_VERSION
-ENV TERRAGRUNT_VERSION $TERRAGRUNT_VERSION
 ENV YQ_VERSION $YQ_VERSION
 
 RUN set -ex; \
@@ -143,12 +137,15 @@ RUN set -ex; \
   wget -O /tmp/build/sops "https://github.com/mozilla/sops/releases/download/v${SOPS_VERSION}/sops-v${SOPS_VERSION}.linux"; \
   chmod +x sops; \
   \
-  # terragrunt
-  wget -O /tmp/build/terragrunt "https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64"; \
-  chmod +x terragrunt; \
   # yq
   wget -O /tmp/build/yq https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64; \
-  chmod +x yq;
+  chmod +x yq; \
+  # tfenv
+  git clone --depth=1 https://github.com/tfutils/tfenv.git ./tfenv; \
+  # tgenv
+  git clone https://github.com/tgenv/tgenv.git ./tgenv; \
+  # pkenv
+  git clone https://github.com/iamhsa/pkenv.git ./pkenv;
 COPY tools/covalence/Gemfile /tmp/build
 COPY tools/covalence/.gemrc /tmp/build
 
@@ -163,20 +160,27 @@ RUN set -ex; \
 
 FROM ruby:${RUBY_VERSION}-alpine${ALPINE_VERSION}
 ARG COVALENCE_VERSION
-
+ARG TERRAGRUNT_VERSION
+ARG PACKER_VERSION
+ARG TERRAFORM_VERSION
 LABEL packer_version="${PACKER_VERSION}"
 LABEL terraform_version="${TERRAFORM_VERSION}"
+LABEL terragrunt_version="${TERRAGRUNT_VERSION}"
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
-
+ENV TERRAGRUNT_VERSION $TERRAGRUNT_VERSION
+ENV TERRAFORM_VERSION $TERRAFORM_VERSION
+ENV PACKER_VERSION $PACKER_VERSION
 ENV COVALENCE_VERSION $COVALENCE_VERSION
 ENV BUNDLE_GEMFILE /opt/Gemfile
 ENV BUNDLE_PATH /opt/gems
-ENV PATH /opt/bin:$PATH
+ENV PATH /opt/bin:/usr/local/tfenv/bin:/usr/local/tgenv/bin:/usr/local/pkenv/bin:$PATH
 
 COPY --from=covbuild /tmp/build/gosu /usr/local/bin/
 COPY --from=covbuild /tmp/build/dumb-init /usr/local/bin/
 COPY --from=covbuild /tmp/build/sops /usr/local/bin/
-COPY --from=covbuild /tmp/build/terragrunt /usr/local/bin/
+COPY --from=covbuild /tmp/build/tfenv /usr/local/tfenv
+COPY --from=covbuild /tmp/build/tgenv /usr/local/tgenv
+COPY --from=covbuild /tmp/build/pkenv /usr/local/pkenv
 COPY --from=covbuild /tmp/build/yq /usr/local/bin/
 COPY --from=covbuild /tmp/build/Gemfile /opt/
 COPY --from=covbuild /tmp/build/Gemfile.lock /opt/
@@ -226,6 +230,15 @@ RUN mkdir -p /usr/local/bin && \
     echo "**** install bundles and covalence ${COVALENCE_VERSION} ****" && \
     bundle check --gemfile=/opt/Gemfile --path=/opt/gems || bundle install --binstubs=/opt/bin --gemfile=/opt/Gemfile --path=/opt/gems --jobs=4 --retry=3 && \
     \
+    tfenv install latest && \
+    tgenv install latest && \
+    pkenv install latest:^1.8 && \
+    tfenv install ${TERRAFORM_VERSION} && \
+    tgenv install ${TERRAGRUNT_VERSION} && \
+    pkenv install ${PACKER_VERSION} && \
+    tfenv use ${TERRAFORM_VERSION} && \
+    tgenv use ${TERRAGRUNT_VERSION} && \
+    pkenv use ${PACKER_VERSION} && \
     # Cleanup
     cd / && \
     rm -rf /tmp/build
