@@ -249,7 +249,8 @@ COPY --from=hiera-build /tmp/build/bin/lookup /usr/local/bin/
 # TODO Move these to ~/.teraform.d/plugins instead, avoiding all the magic required for this (and the 777)
 COPY --from=build /build/terraform-providers/* /usr/local/bin/terraform-providers/linux_amd64/
 RUN chmod 777 /usr/local/bin/terraform-providers/linux_amd64
-
+# Create sumbolic links to packer providers in all versions
+RUN  for i in /usr/local/pkenv/versions/[0-9]*; do for b in /usr/local/bin/packer-*;do ln -s "${b}" "${i}"/$(basename "${b}");done; done
 COPY .build_ts .
 COPY tools/covalence/entrypoint.sh /usr/local/bin/
 
