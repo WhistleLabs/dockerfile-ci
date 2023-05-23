@@ -26,7 +26,7 @@ mkdir -p /tmp/build && \
   go build -ldflags "-X 'github.com/lyraproj/hiera/cli.BuildTag=$BuildTag' -X 'github.com/lyraproj/hiera/cli.BuildSHA=$BuildSHA' -X 'github.com/lyraproj/hiera/cli.BuildTime=$BuildTime'" -o bin/lookup github.com/lyraproj/hiera/lookup && \
   bin/lookup --version
 
-FROM alpine:3.7 as build
+FROM alpine:3.7 AS build
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
 RUN set -exv \
@@ -94,12 +94,14 @@ ARG GOSU_VERSION
 ARG GOSU_KEY
 ARG SOPS_VERSION
 ARG YQ_VERSION
+ARG HCLEDIT_VERSION
 ENV COVALENCE_VERSION $COVALENCE_VERSION
 ENV DUMBINIT_VERSION $DUMBINIT_VERSION
 ENV GOSU_VERSION $GOSU_VERSION
 ENV GOSU_KEY B42F6819007F00F88E364FD4036A9C25BF357DD4
 ENV SOPS_VERSION $SOPS_VERSION
 ENV YQ_VERSION $YQ_VERSION
+ENV HCLEDIT_VERSION $HCLEDIT_VERSION
 
 RUN set -ex; \
   \
@@ -140,6 +142,12 @@ RUN set -ex; \
   # yq
   wget -O /tmp/build/yq https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64; \
   chmod +x yq; \
+  # hcledit
+  wget -c https://github.com/minamijoyo/hcledit/releases/download/v${HCLEDIT_VERSION}/hcledit_${HCLEDIT_VERSION}_linux_amd64.tar.gz -O - | tar -xz -C /tmp/build/ hcledit; \
+  chmod +x hcledit; \
+  # json2hcl2
+  wget -c https://github.com/disaac/json2hcl2/releases/download/v0.1.0/json2hcl2_Linux_x86_64.tar.gz -O - | tar -xz -C /tmp/build json2hcl2; \
+  chmod +x json2hcl2; \
   # tfenv
   git clone --depth=1 https://github.com/tfutils/tfenv.git ./tfenv; \
   # tgenv
@@ -182,6 +190,8 @@ COPY --from=covbuild /tmp/build/tfenv /usr/local/tfenv
 COPY --from=covbuild /tmp/build/tgenv /usr/local/tgenv
 COPY --from=covbuild /tmp/build/pkenv /usr/local/pkenv
 COPY --from=covbuild /tmp/build/yq /usr/local/bin/
+COPY --from=covbuild /tmp/build/hcledit /usr/local/bin/hcledit
+COPY --from=covbuild /tmp/build/json2hcl2 /usr/local/bin/json2hcl2
 COPY --from=covbuild /tmp/build/Gemfile /opt/
 COPY --from=covbuild /tmp/build/Gemfile.lock /opt/
 COPY --from=covbuild /tmp/build/.gemrc /opt/
