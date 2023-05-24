@@ -171,12 +171,21 @@ ARG COVALENCE_VERSION
 ARG TERRAGRUNT_VERSION
 ARG PACKER_VERSION
 ARG TERRAFORM_VERSION
+ARG TERRAFORM_LATEST
+ARG TERRAGRUNT_LATEST
+ARG PACKER_LATEST
 LABEL packer_version="${PACKER_VERSION}"
 LABEL terraform_version="${TERRAFORM_VERSION}"
 LABEL terragrunt_version="${TERRAGRUNT_VERSION}"
+LABEL packer_latest="${PACKER_LATEST}"
+LABEL terraform_latest="${TERRAFORM_LATEST}"
+LABEL terragrunt_latest="${TERRAGRUNT_LATEST}"
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 ENV TERRAGRUNT_VERSION $TERRAGRUNT_VERSION
 ENV TERRAFORM_VERSION $TERRAFORM_VERSION
+ENV PACKER_LATEST $PACKER_LATEST
+ENV TERRAGRUNT_LATEST $TERRAGRUNT_LATEST
+ENV TERRAFORM_LATEST $TERRAFORM_LATEST
 ENV PACKER_VERSION $PACKER_VERSION
 ENV COVALENCE_VERSION $COVALENCE_VERSION
 ENV BUNDLE_GEMFILE /opt/Gemfile
@@ -239,16 +248,19 @@ RUN mkdir -p /usr/local/bin && \
     # Install gem packages and covalence if not already present
     echo "**** install bundles and covalence ${COVALENCE_VERSION} ****" && \
     bundle check --gemfile=/opt/Gemfile --path=/opt/gems || bundle install --binstubs=/opt/bin --gemfile=/opt/Gemfile --path=/opt/gems --jobs=4 --retry=3 && \
-    \
-    tfenv install latest && \
-    tgenv install latest && \
-    pkenv install latest:^1.8 && \
     tfenv install ${TERRAFORM_VERSION} && \
     tgenv install ${TERRAGRUNT_VERSION} && \
     pkenv install ${PACKER_VERSION} && \
+    tfenv install ${TERRAFORM_LATEST} && \
+    tgenv install ${TERRAGRUNT_LATEST} && \
+    pkenv install ${PACKER_LATEST} && \
+    # Use the versions specified by default
     tfenv use ${TERRAFORM_VERSION} && \
     tgenv use ${TERRAGRUNT_VERSION} && \
     pkenv use ${PACKER_VERSION} && \
+    tfenv list && \
+    tgenv list && \
+    pkenv list && \
     # Cleanup
     cd / && \
     rm -rf /tmp/build
