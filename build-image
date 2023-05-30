@@ -10,14 +10,17 @@ DUMBINIT_VERSION=${DUMBINIT_VERSION:-1.2.2}
 GOSU_VERSION=${GOSU_VERSION:-1.12}
 RUBY_VERSION=${RUBY_VERSION:-2.5.5}
 SOPS_VERSION=${SOPS_VERSION:-3.6.0}
-TERRAGRUNT_VERSION=${TERRAGRUNT_VERSION:-0.28.3}
-YQ_VERSION=${YQ_VERSION:-4.5.1}
+TERRAGRUNT_VERSION=${TERRAGRUNT_VERSION:-0.45.16}
+YQ_VERSION=${YQ_VERSION:-4.33.3}
+HCLEDIT_VERSION=${HCLEDIT_VERSION:-0.2.8}
 BUNDLER_VERSION=${BUNDLER_VERSION:-1.17.3}
 
 build_tag="${CI_IMAGE_NAME}:build"
 # DEVOPS-2520 Grab the latest short sha for covalence
 COVALENCE_VERSION=$(wget -qO- https://api.github.com/repos/WhistleLabs/covalence/commits/HEAD | jq -r '.sha' |  cut -b -7)
-
+PACKER_LATEST="$(curl -s https://api.github.com/repos/hashicorp/packer/releases/latest | jq -r '.name' | sed 's/v//g' )"
+TERRAFORM_LATEST="$(curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest | jq -r '.name' | sed 's/v//g' )"
+TERRAGRUNT_LATEST="$(curl -s https://api.github.com/repos/gruntwork-io/terragrunt/releases/latest | jq -r '.name' | sed 's/v//g')"
 build() {
   cmd=(
     docker build
@@ -33,7 +36,11 @@ build() {
     --build-arg SOPS_VERSION
     --build-arg TERRAGRUNT_VERSION
     --build-arg YQ_VERSION
+    --build-arg HCLEDIT_VERSION
     --build-arg BUNDLER_VERSION
+    --build-arg PACKER_LATEST=$PACKER_LATEST
+    --build-arg TERRAFORM_LATEST=$TERRAFORM_LATEST
+    --build-arg TERRAGRUNT_LATEST=$TERRAGRUNT_LATEST
   )
   "${cmd[@]}" "$@"
 }

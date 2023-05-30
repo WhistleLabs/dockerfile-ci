@@ -26,7 +26,7 @@ mkdir -p /tmp/build && \
   go build -ldflags "-X 'github.com/lyraproj/hiera/cli.BuildTag=$BuildTag' -X 'github.com/lyraproj/hiera/cli.BuildSHA=$BuildSHA' -X 'github.com/lyraproj/hiera/cli.BuildTime=$BuildTime'" -o bin/lookup github.com/lyraproj/hiera/lookup && \
   bin/lookup --version
 
-FROM alpine:3.7 as build
+FROM alpine:3.7 AS build
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 
 RUN set -exv \
@@ -94,12 +94,14 @@ ARG GOSU_VERSION
 ARG GOSU_KEY
 ARG SOPS_VERSION
 ARG YQ_VERSION
+ARG HCLEDIT_VERSION
 ENV COVALENCE_VERSION $COVALENCE_VERSION
 ENV DUMBINIT_VERSION $DUMBINIT_VERSION
 ENV GOSU_VERSION $GOSU_VERSION
 ENV GOSU_KEY B42F6819007F00F88E364FD4036A9C25BF357DD4
 ENV SOPS_VERSION $SOPS_VERSION
 ENV YQ_VERSION $YQ_VERSION
+ENV HCLEDIT_VERSION $HCLEDIT_VERSION
 
 RUN set -ex; \
   \
@@ -140,6 +142,12 @@ RUN set -ex; \
   # yq
   wget -O /tmp/build/yq https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64; \
   chmod +x yq; \
+  # hcledit
+  wget -c https://github.com/minamijoyo/hcledit/releases/download/v${HCLEDIT_VERSION}/hcledit_${HCLEDIT_VERSION}_linux_amd64.tar.gz -O - | tar -xz -C /tmp/build/ hcledit; \
+  chmod +x hcledit; \
+  # json2hcl2
+  wget -c https://github.com/disaac/json2hcl2/releases/download/v0.1.0/json2hcl2_Linux_x86_64.tar.gz -O - | tar -xz -C /tmp/build json2hcl2; \
+  chmod +x json2hcl2; \
   # tfenv
   git clone --depth=1 https://github.com/tfutils/tfenv.git ./tfenv; \
   # tgenv
@@ -163,12 +171,21 @@ ARG COVALENCE_VERSION
 ARG TERRAGRUNT_VERSION
 ARG PACKER_VERSION
 ARG TERRAFORM_VERSION
+ARG TERRAFORM_LATEST
+ARG TERRAGRUNT_LATEST
+ARG PACKER_LATEST
 LABEL packer_version="${PACKER_VERSION}"
 LABEL terraform_version="${TERRAFORM_VERSION}"
 LABEL terragrunt_version="${TERRAGRUNT_VERSION}"
+LABEL packer_latest="${PACKER_LATEST}"
+LABEL terraform_latest="${TERRAFORM_LATEST}"
+LABEL terragrunt_latest="${TERRAGRUNT_LATEST}"
 LABEL maintainer="WhistleLabs, Inc. <devops@whistle.com>"
 ENV TERRAGRUNT_VERSION $TERRAGRUNT_VERSION
 ENV TERRAFORM_VERSION $TERRAFORM_VERSION
+ENV PACKER_LATEST $PACKER_LATEST
+ENV TERRAGRUNT_LATEST $TERRAGRUNT_LATEST
+ENV TERRAFORM_LATEST $TERRAFORM_LATEST
 ENV PACKER_VERSION $PACKER_VERSION
 ENV COVALENCE_VERSION $COVALENCE_VERSION
 ENV BUNDLE_GEMFILE /opt/Gemfile
@@ -182,6 +199,8 @@ COPY --from=covbuild /tmp/build/tfenv /usr/local/tfenv
 COPY --from=covbuild /tmp/build/tgenv /usr/local/tgenv
 COPY --from=covbuild /tmp/build/pkenv /usr/local/pkenv
 COPY --from=covbuild /tmp/build/yq /usr/local/bin/
+COPY --from=covbuild /tmp/build/hcledit /usr/local/bin/hcledit
+COPY --from=covbuild /tmp/build/json2hcl2 /usr/local/bin/json2hcl2
 COPY --from=covbuild /tmp/build/Gemfile /opt/
 COPY --from=covbuild /tmp/build/Gemfile.lock /opt/
 COPY --from=covbuild /tmp/build/.gemrc /opt/
@@ -229,16 +248,19 @@ RUN mkdir -p /usr/local/bin && \
     # Install gem packages and covalence if not already present
     echo "**** install bundles and covalence ${COVALENCE_VERSION} ****" && \
     bundle check --gemfile=/opt/Gemfile --path=/opt/gems || bundle install --binstubs=/opt/bin --gemfile=/opt/Gemfile --path=/opt/gems --jobs=4 --retry=3 && \
-    \
-    tfenv install latest && \
-    tgenv install latest && \
-    pkenv install latest:^1.8 && \
     tfenv install ${TERRAFORM_VERSION} && \
     tgenv install ${TERRAGRUNT_VERSION} && \
     pkenv install ${PACKER_VERSION} && \
+    tfenv install ${TERRAFORM_LATEST} && \
+    tgenv install ${TERRAGRUNT_LATEST} && \
+    pkenv install ${PACKER_LATEST} && \
+    # Use the versions specified by default
     tfenv use ${TERRAFORM_VERSION} && \
     tgenv use ${TERRAGRUNT_VERSION} && \
     pkenv use ${PACKER_VERSION} && \
+    tfenv list && \
+    tgenv list && \
+    pkenv list && \
     # Cleanup
     cd / && \
     rm -rf /tmp/build
