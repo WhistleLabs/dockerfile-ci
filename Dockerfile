@@ -50,13 +50,17 @@ RUN set -exv \
  # terraform providers
  && install-zipped-bin ./terraform-providers \
     terraform-provider-archive:1.2.2 \
-    terraform-provider-aws:4.62.0  \
+    terraform-provider-aws:4.67.0  \
+    terraform-provider-aws:2.70.4  \
     terraform-provider-github:2.3.1 \
     terraform-provider-google:2.7.0 \
     terraform-provider-kubernetes:1.11.1 \
     terraform-provider-newrelic:3.20.2 \
     terraform-provider-null:2.1.2 \
     terraform-provider-template:2.1.2 \
+    terraform-provider-cloudamqp:1.26.2 \
+    terraform-provider-cloudamqp:1.9.4 \
+    terraform-provider-pagerduty:2.15.0 \
  && :
 # @lmars releases
 RUN set -exv \
@@ -73,9 +77,7 @@ RUN set -exv \
     packer-provisioner-serverspec:0.1.1-whistle0 \
  # terraform providers
  && install-zipped-bin ./terraform-providers \
-    terraform-provider-cloudamqp:0.0.1-whistle0-tf012 \
     terraform-provider-datadog:1.9.0-whistle0-tf012 \
-    terraform-provider-heroku:1.9.0-whistle0-tf012 \
     terraform-provider-logentries:1.0.0-whistle0-tf012 \
     terraform-provider-pagerduty:1.2.1-whistle0-tf012 \
     terraform-provider-rabbitmq:1.0.0-whistle0-tf012 \
