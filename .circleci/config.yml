@@ -14,9 +14,10 @@ jobs:
       GOSU_VERSION: '1.12'
       RUBY_VERSION: '2.5.5'
       SOPS_VERSION: '3.6.1'
-      TERRAGRUNT_VERSION: '0.46.3'
+      TERRAGRUNT_VERSION: '0.48.6'
       YQ_VERSION: '4.33.3'
       HCLEDIT_VERSION: '0.2.8'
+      HCL2JSON_VERSION: '0.5.0'
       BUNDLER_VERSION: '1.17.3'
     steps:
       - restore_cache:
