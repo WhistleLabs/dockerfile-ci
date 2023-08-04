@@ -97,6 +97,7 @@ ARG GOSU_KEY
 ARG SOPS_VERSION
 ARG YQ_VERSION
 ARG HCLEDIT_VERSION
+ARG HCL2JSON_VERSION
 ENV COVALENCE_VERSION $COVALENCE_VERSION
 ENV DUMBINIT_VERSION $DUMBINIT_VERSION
 ENV GOSU_VERSION $GOSU_VERSION
@@ -104,6 +105,7 @@ ENV GOSU_KEY B42F6819007F00F88E364FD4036A9C25BF357DD4
 ENV SOPS_VERSION $SOPS_VERSION
 ENV YQ_VERSION $YQ_VERSION
 ENV HCLEDIT_VERSION $HCLEDIT_VERSION
+ENV HCL2JSON_VERSION $HCL2JSON_VERSION
 
 RUN set -ex; \
   \
@@ -150,6 +152,9 @@ RUN set -ex; \
   # json2hcl2
   wget -c https://github.com/disaac/json2hcl2/releases/download/v0.1.0/json2hcl2_Linux_x86_64.tar.gz -O - | tar -xz -C /tmp/build json2hcl2; \
   chmod +x json2hcl2; \
+  # hcl2json
+  wget -O /tmp/build/hcl2json https://github.com/tmccombs/hcl2json/releases/download/v${HCL2JSON_VERSION}/hcl2json_linux_amd64; \
+  chmod +x hcl2json; \
   # tfenv
   git clone --depth=1 https://github.com/tfutils/tfenv.git ./tfenv; \
   # tgenv
@@ -203,6 +208,7 @@ COPY --from=covbuild /tmp/build/pkenv /usr/local/pkenv
 COPY --from=covbuild /tmp/build/yq /usr/local/bin/
 COPY --from=covbuild /tmp/build/hcledit /usr/local/bin/hcledit
 COPY --from=covbuild /tmp/build/json2hcl2 /usr/local/bin/json2hcl2
+COPY --from=covbuild /tmp/build/hcl2json /usr/local/bin/hcl2json
 COPY --from=covbuild /tmp/build/Gemfile /opt/
 COPY --from=covbuild /tmp/build/Gemfile.lock /opt/
 COPY --from=covbuild /tmp/build/.gemrc /opt/
