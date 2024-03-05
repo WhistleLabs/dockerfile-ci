@@ -78,7 +78,7 @@ RUN set -exv \
  # terraform providers
  && install-zipped-bin ./terraform-providers \
     terraform-provider-datadog:1.9.0-whistle0-tf012 \
-    terraform-provider-logentries:1.0.0-whistle0-tf012 \
+    terraform-provider-logentries:1.0.2-whistle0-tf012 \
     terraform-provider-pagerduty:1.2.1-whistle0-tf012 \
     terraform-provider-rabbitmq:1.0.0-whistle0-tf012 \
  && :
