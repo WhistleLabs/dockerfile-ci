@@ -1,53 +1,59 @@
 #!/usr/bin/env bash
 set -eo pipefail
-
 # Required Variables
 CI_IMAGE_NAME=${CI_IMAGE_NAME:-whistle/ci}
+ALPINE_VERSION=${ALPINE_VERSION:-3.19}
+DUMBINIT_VERSION=${DUMBINIT_VERSION:-1.2.2}
+GOSU_VERSION=${GOSU_VERSION:-1.17}
+PULUMI_VERSION=${PULUMI_VERSION:-3.117.0}
+KUBECTL_VERSION=${KUBECTL_VERSION:-1.29.2}
 PACKER_VERSION=${PACKER_VERSION:-1.4.4}
 TERRAFORM_VERSION=${TERRAFORM_VERSION:-0.12.31}
-ALPINE_VERSION=${ALPINE_VERSION:-3.10}
-DUMBINIT_VERSION=${DUMBINIT_VERSION:-1.2.2}
-GOSU_VERSION=${GOSU_VERSION:-1.12}
-RUBY_VERSION=${RUBY_VERSION:-2.5.5}
-SOPS_VERSION=${SOPS_VERSION:-3.6.0}
-TERRAGRUNT_VERSION=${TERRAGRUNT_VERSION:-0.48.6}
-YQ_VERSION=${YQ_VERSION:-4.33.3}
-HCLEDIT_VERSION=${HCLEDIT_VERSION:-0.2.8}
-HCL2JSON_VERSION=${HCL2JSON_VERSION:-0.5.0}
-BUNDLER_VERSION=${BUNDLER_VERSION:-1.17.3}
-
-build_tag="${CI_IMAGE_NAME}:build"
-# DEVOPS-2520 Grab the latest short sha for covalence
-COVALENCE_VERSION=$(wget -qO- https://api.github.com/repos/WhistleLabs/covalence/commits/HEAD | jq -r '.sha' |  cut -b -7)
-PACKER_LATEST="$(curl -s https://api.github.com/repos/hashicorp/packer/releases/latest | jq -r '.name' | sed 's/v//g' )"
-TERRAFORM_LATEST="$(curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest | jq -r '.name' | sed 's/v//g' )"
-TERRAGRUNT_LATEST="$(curl -s https://api.github.com/repos/gruntwork-io/terragrunt/releases/latest | jq -r '.name' | sed 's/v//g')"
+TERRAGRUNT_VERSION=${TERRAGRUNT_VERSION:-0.58.12}
+HCL2JSON_VERSION=${HCL2JSON_VERSION-0.6.3}
+HCLEDIT_VERSION=${HCLEDIT_VERSION-0.2.11}
+SOPS_VERSION=${SOPS_VERSION-3.8.1}
+YQ_VERSION=${YQ_VERSION-4.33.3}
+NODE_VERSION=${NODE_VERSION:-22.2.0}
+build_tag="${CI_IMAGE_NAME}:latest"
+# # DEVOPS-2520 Grab the latest short sha for covalence
+# YQ_LATEST="$(curl -s https://api.github.com/repos/mikefarah/yq/releases/latest | jq -r '.name' | sed 's/v//g' | awk '{print $1}')"
+# SOPS_LATEST="$(curl -s https://api.github.com/repos/getsops/sops/releases/latest | jq -r '.name' | sed 's/v//g')"
+# PACKER_LATEST="$(curl -s https://api.github.com/repos/hashicorp/packer/releases/latest | jq -r '.name' | sed 's/v//g')"
+# TERRAFORM_LATEST="$(curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest | jq -r '.name' | sed 's/v//g')"
+# TERRAGRUNT_LATEST="$(curl -s https://api.github.com/repos/gruntwork-io/terragrunt/releases/latest | jq -r '.name' | sed 's/v//g')"
+# PULUMI_LATEST="$(curl -s https://api.github.com/repos/pulumi/pulumi/releases/latest | jq -r '.name' | sed 's/v//g')"
+# KUBECTL_LATEST="$(curl -s https://api.github.com/repos/kubernetes/kubernetes/releases/latest | jq -r '.name' | sed 's/v//g' | awk '{print $2}')"
+# GOSU_LATEST="$(curl -s https://api.github.com/repos/tianon/gosu/releases/latest | jq -r '.name' | sed 's/v//g')"
 build() {
   cmd=(
     docker build
     --rm=false
-    --build-arg CI_IMAGE_NAME
-    --build-arg PACKER_VERSION
-    --build-arg TERRAFORM_VERSION
-    --build-arg ALPINE_VERSION
-    --build-arg COVALENCE_VERSION=$COVALENCE_VERSION
-    --build-arg DUMBINIT_VERSION
-    --build-arg GOSU_VERSION
-    --build-arg RUBY_VERSION
-    --build-arg SOPS_VERSION
-    --build-arg TERRAGRUNT_VERSION
-    --build-arg YQ_VERSION
-    --build-arg HCLEDIT_VERSION
-    --build-arg HCL2JSON_VERSION
-    --build-arg BUNDLER_VERSION
-    --build-arg PACKER_LATEST=$PACKER_LATEST
-    --build-arg TERRAFORM_LATEST=$TERRAFORM_LATEST
-    --build-arg TERRAGRUNT_LATEST=$TERRAGRUNT_LATEST
+    --build-arg CI_IMAGE_NAME=${CI_IMAGE_NAME}
+    --build-arg BASE_IMAGE=${BASE_IMAGE}
+    --build-arg PACKER_VERSION=${PACKER_VERSION}
+    --build-arg TERRAFORM_VERSION=${TERRAFORM_VERSION}
+    --build-arg DUMBINIT_VERSION=${DUMBINIT_VERSION}
+    --build-arg GOSU_VERSION=${GOSU_VERSION}
+    --build-arg SOPS_VERSION=${SOPS_VERSION}
+    --build-arg TERRAGRUNT_VERSION=${TERRAGRUNT_VERSION}
+    --build-arg YQ_VERSION=${YQ_VERSION}
+    --build-arg HCLEDIT_VERSION=${HCLEDIT_VERSION}
+    --build-arg HCL2JSON_VERSION=${HCL2JSON_VERSION}
+    --build-arg PULUMI_VERSION=${PULUMI_VERSION}
+    --build-arg KUBECTL_VERSION=${KUBECTL_VERSION}
   )
   "${cmd[@]}" "$@"
 }
 
-# This is a multi-stage build, which means we need to cache both stages.
-build -t "$build_tag-build" --target build .
-build -t "$build_tag-covbuild" --target covbuild .
-build -t "$build_tag" .
+# This is a multi-stage build will target and tag stages
+# for each type of container that we will build in github
+
+for i in "build-terraform-full" "build-terraform-slim"; do
+  BASE_IMAGE="alpine:${ALPINE_VERSION}"
+  build -t "$build_tag-${i}" --target ${i} .
+done
+for i in "build-terraform-slim-pulumi" "build-terraform-full-pulumi" "build-pulumi"; do
+  BASE_IMAGE="node:${NODE_VERSION}-alpine${ALPINE_VERSION}"
+  build -t "$build_tag-${i}" --target ${i} .
+done
