@@ -115,9 +115,14 @@ RUN set -exv \
 
 WORKDIR /build
 ENV PATH=$PATH:/build/bin
-
+# TODO: Adding support for downloading providers for arm64 but still using some
+# Versions of providers that do not support arm64 such as archive provider from
+# hashicorp so defaulting this to amd64 regardless of the actual architecture
+# Once all providers support arm64 this can be removed.
 ARG TARGETARCH
-ENV TARGETARCH=${TARGETARCH:-amd64}
+# Uncomment the following line to default to amd64 only when arch not set
+# ENV TARGETARCH=${TARGETARCH:-amd64}
+ENV TARGETARCH=amd64
 
 COPY install-zipped-bin ./bin/
 RUN mkdir -pv terraform-providers/linux_${TARGETARCH} terraform-providers/linux_amd64

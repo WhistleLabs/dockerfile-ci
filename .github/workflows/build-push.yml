@@ -1,0 +1,195 @@
+name: build-cicd-images
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - 'master'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+env:
+  # OS version varriants
+  ALPINE_VERSION: '3.19'
+  NODE_VERSION: '22.2.0'
+  # Tools versions
+  DUMBINIT_VERSION: '1.2.2'
+  GOSU_VERSION: '1.17'
+  PULUMI_VERSION: '3.117.0'
+  KUBECTL_VERSION: '1.29.2'
+  PACKER_VERSION: '1.4.4'
+  TERRAFORM_VERSION: '0.12.31'
+  TERRAGRUNT_VERSION: '0.58.12'
+  HCL2JSON_VERSION: '0.6.3'
+  HCLEDIT_VERSION: '0.2.11'
+  SOPS_VERSION: '3.8.1'
+  YQ_VERSION: '4.33.3'
+  IMAGE_NAME: 'whistle-cicdnew'
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - id: set-matrix
+        run: |
+          matrixJson=''"$(jq -c --arg ALPINE_VERSION "$ALPINE_VERSION" --arg NODE_VERSION "$NODE_VERSION"           '.include[] |= if .["base_image"] == "node" then .["base_image"] = "node:" + $NODE_VERSION + "-alpine" + $ALPINE_VERSION elif .["base_image"] == "alpine" then .["base_imtage"] = "alpine:" + $ALPINE_VERSION else . end' matrix-template.json)"''
+          matrixArchs=''"$(jq -c '{include: ( .include | group_by(.arch) | map({ (.[0].arch): . }) | add )}' <<<"${matrixJson}")"''
+          echo "creating matrix from marix-template.json:"
+          echo "matrix="${matrixArchs}""
+          echo "matrix="${matrixArchs}"" >> $GITHUB_OUTPUT
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+  build:
+    needs:
+      - prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Needed to calculate branch for tag
+          fetch-depth: 0
+      - name: Set outputs
+        id: set-outputs
+        run: |
+          echo 'image=ghcr.io/whistlelabs/${{ env.IMAGE_NAME }}' >> "${GITHUB_OUTPUT}"
+          # Only enable push on push events or pull requests coming from the same repository, except from dependabot
+          echo 'push=${{ github.event_name == 'push' || github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}' >> "${GITHUB_OUTPUT}
+          echo 'march=${{ join(fromJSON(toJSON(matrix)).*.arch, ', ') }}' >> "${GITHUB_OUTPUT}
+          echo 'mplatform=linux/${{ join(fromJSON(toJSON(matrix)).*.arch, ', ') }}' >> "${GITHUB_OUTPUT}
+          echo 'mcontext=${{ join(fromJSON(toJSON(matrix)).*.context, ', ') }}' >> "${GITHUB_OUTPUT}
+          echo 'mtag=${{ join(fromJSON(toJSON(matrix)).*.tag, ', ') }}' >> "${GITHUB_OUTPUT}
+          echo 'mbase_image=${{ join(fromJSON(toJSON(matrix)).*.base_image, ', ') }}' >> "${GITHUB_OUTPUT}"
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ steps.set-outputs.outputs.image }}
+          flavor: |
+            prefix=${{ steps.set-outputs.outputs.mtag }},onlatest=true
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        if: steps.set-outputs.outputs.push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set vars
+        id: vars
+        run: |
+          echo "artifact-name=digest-$(echo '${{ steps.set-outputs.outputs.march }}')" >> "${GITHUB_OUTPUT}"
+
+          # Set the cache-to output
+          echo 'cache-to=type=gha,scope=${{ github.ref_name }}-${{ steps.set-outputs.outputs.march }}' >> "${GITHUB_OUTPUT}"
+
+          # Set the cache-from output
+          if [[ '${{ github.event_name }}' == 'push' ]]; then
+            if [[ '${{ github.ref }}' == 'refs/tags/v'* ]]; then
+              # Use cache from the branch when building a tag
+              branch="$(git branch -r --contains '${{ github.ref }}')"
+              branch="${branch##*/}"
+              echo "cache-from=type=gha,scope=${branch}-${{ steps.set-outputs.outputs.march }}" >> "${GITHUB_OUTPUT}"
+            else
+              # Use cache from the same branch when not building a tag
+              echo 'cache-from=type=gha,scope=${{ github.ref_name }}-${{ steps.set-outputs.outputs.march }}' >> "${GITHUB_OUTPUT}"
+            fi
+          else
+            # Use cache from target branch too when building a pull request
+
+            # In this case, it has to be a multiline string
+            # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
+            EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+
+            echo "cache-from<<${EOF}" >> "${GITHUB_OUTPUT}"
+
+            printf '%s\n' \
+              "type=gha,scope=${{ github.ref_name }}-${{ steps.set-outputs.outputs.march }}" \
+              "type=gha,scope=${{ github.base_ref }}-${{ steps.set-outputs.outputs.march }}" \
+              >> "${GITHUB_OUTPUT}"
+
+            echo "${EOF}" >> "${GITHUB_OUTPUT}"
+          fi
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ steps.set-outputs.outputs.mcontext }}
+          platforms: ${{ steps.set-outputs.outputs.mplatform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: |
+            type=image,name=${{ steps.set-outputs.outputs.image }},push-by-digest=true,name-canonical=true,push=${{ steps.set-outputs.outputs.push }}
+          cache-from: |
+            ${{ steps.vars.outputs.cache-from }}
+          cache-to: |
+            ${{ steps.vars.outputs.cache-to }}
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest='${{ steps.build.outputs.digest }}'
+          touch "/tmp/digests/${digest#sha256:}"
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.vars.outputs.artifact-name }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+    outputs:
+      image: ${{ steps.set-outputs.outputs.image }}
+      push: ${{ steps.set-outputs.outputs.push }}
+      march: ${{ steps.set-outputs.outputs.march }}
+      mplatform: ${{ steps.set-outputs.outputs.mplatform }}
+      mcontext: ${{ steps.set-outputs.outputs.mcontext }}
+      mtag: ${{ steps.set-outputs.outputs.mtag }}
+      mbase_image: ${{ steps.set-outputs.outputs.mbase_image }}
+      meta-version: ${{ steps.meta.outputs.version }}
+      meta-labels: ${{ steps.meta.outputs.labels }}
+      meta-json: ${{ steps.meta.outputs.json }}
+
+  push:
+    needs:
+      - prepare
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digest-*
+          merge-multiple: true
+          path: /tmp/digests
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        if: needs.build.outputs.push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create manifest list and push
+        if: needs.build.outputs.push == 'true'
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create $(jq -r '"-t " + (.tags | join(" -t "))' <<< '${{ needs.build.outputs.meta-json }}') \
+            $(printf '${{ needs.build.outputs.image }}@sha256:%s ' *)
+      - name: Inspect image
+        if: needs.build.outputs.push == 'true'
+        run: |
+          docker buildx imagetools inspect '${{ needs.build.outputs.image }}:${{ needs.build.outputs.meta-version }}'

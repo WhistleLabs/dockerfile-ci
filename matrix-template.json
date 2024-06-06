@@ -1,0 +1,52 @@
+{
+  "include": [
+    {
+      "base_image":"alpine",
+      "context":"build-terraform-slim",
+      "arch": "amd64",
+      "tag": "tf-slim"
+    },
+    {
+      "base_image":"alpine",
+      "context":"build-terraform-slim",
+      "arch": "arm64",
+      "tag": "tf-slim"
+    },
+    {
+      "base_image":"alpine",
+      "context":"build-terraform-full",
+      "arch": "amd64",
+      "tag": "tf-slim"
+    },
+    {
+      "base_image":"node",
+      "context":"build-terraform-slim-pulumi",
+      "arch": "amd64",
+      "tag": "tf-slim-plm"
+    },
+    {
+      "base_image":"node",
+      "context":"build-terraform-slim-pulumi",
+      "arch": "arm64",
+      "tag": "tf-slim-plm"
+    },
+    {
+      "base_image":"node",
+      "context":"build-pulumi",
+      "arch": "arm64",
+      "tag": "plm"
+    },
+    {
+      "base_image":"node",
+      "context":"build-terraform-full-pulumi",
+      "arch": "amd64",
+      "tag": "tf-full-plm"
+    },
+    {
+      "base_image":"node",
+      "context":"build-pulumi",
+      "arch": "arm64",
+      "tag": "plm"
+    }
+  ]
+}
