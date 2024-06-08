@@ -87,7 +87,7 @@ RUN set -exv \
  && export uri_template='https://github.com/jianyuan/${name}/releases/download/v${full_ver}/${name}_${ver}_${arch}.zip' \
  # terraform providers
  && install-zipped-bin ./terraform-providers \
-    terraform-provider-sentry:0.7.0 \
+    terraform-provider-sentry:0.10.0 \
  && :
 FROM ruby:${RUBY_VERSION}-alpine${ALPINE_VERSION} as covbuild
 ARG COVALENCE_VERSION
