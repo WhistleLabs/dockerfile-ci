@@ -41,7 +41,7 @@ jobs:
             - ".git"
 
       - setup_remote_docker:
-          version: 17.10.0-ce
+          version: default
 
       - run:
           name: docker info
